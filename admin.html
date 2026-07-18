@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNPJ Manager - Painel Administrativo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0B0F1E;
+      --bg-secondary: #1a1f3a;
+      --bg-tertiary: #252d4a;
+      --accent: #4F6EF7;
+      --accent-hover: #3d57d4;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b8d4;
+      --border: #2d3555;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo { font-size: 22px; font-weight: 700; color: var(--accent); }
+    .badge-admin { background: var(--accent); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+    .nav-tabs {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 15px 25px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-tab:hover { color: var(--text-primary); }
+    .nav-tab.ativo { color: var(--accent); border-bottom-color: var(--accent); background: rgba(79,110,247,0.05); }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 25px 20px; }
+    .tab-content { display: none; }
+    .tab-content.ativo { display: block; }
+
+    .secao {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .secao h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .secao h2 .icon { font-size: 22px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .stat-icon {
+      width: 50px; height: 50px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .stat-icon.blue { background: rgba(79,110,247,0.15); }
+    .stat-icon.green { background: rgba(16,185,129,0.15); }
+    .stat-icon.orange { background: rgba(245,158,11,0.15); }
+    .stat-icon.red { background: rgba(239,68,68,0.15); }
+
+    .stat-info { flex: 1; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 13px; color: var(--text-secondary); }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-2px); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover:not(:disabled) { background: #059669; transform: translateY(-2px); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); }
+    .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); background: rgba(79,110,247,0.1); }
+    .btn-warning { background: var(--warning); color: #000; }
+    .btn-warning:hover:not(:disabled) { background: #d97706; transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--bg-primary);
+    }
+    .upload-area:hover { border-color: var(--accent); background: rgba(79,110,247,0.05); }
+    .upload-area.drag-over { border-color: var(--accent); background: rgba(79,110,247,0.1); }
+    .upload-icon { font-size: 48px; margin-bottom: 15px; }
+    .upload-text { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+    .upload-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+    .file-input { display: none; }
+
+    .file-info {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      display: none;
+    }
+    .file-info.ativo { display: block; }
+    .file-info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .file-info-row:last-child { border-bottom: none; }
+    .file-info-label { color: var(--text-secondary); font-weight: 600; }
+    .file-info-valor { color: var(--accent); font-weight: 500; }
+
+    .preview-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,110,247,0.1); }
+    .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: var(--bg-tertiary);
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    tr:hover td { background: rgba(79,110,247,0.03); }
+    tr.selecionado td { background: rgba(79,110,247,0.08); }
+    td.cnpj-cell { font-family: 'Courier New', monospace; font-weight: 600; color: var(--accent); white-space: nowrap; }
+    td.razao-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      padding: 8px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    .page-btn:hover { border-color: var(--accent); }
+    .page-btn.ativo { background: var(--accent); border-color: var(--accent); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .distribuicao-modo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .modo-card {
+      background: var(--bg-primary);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    .modo-card:hover { border-color: var(--accent); }
+    .modo-card.ativo { border-color: var(--accent); background: rgba(79,110,247,0.05); }
+    .modo-card .modo-icon { font-size: 32px; margin-bottom: 10px; }
+    .modo-card .modo-titulo { font-weight: 600; margin-bottom: 5px; }
+    .modo-card .modo-desc { font-size: 13px; color: var(--text-secondary); }
+
+    .distribuicao-config {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .distribuicao-config.ativo { display: block; }
+
+    .input-group { margin-bottom: 15px; }
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 10px 15px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .input-group input:focus, .input-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,110,247,0.1);
+    }
+
+    .funcionarios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .func-card {
+      background: var(--bg-primary);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .func-card:hover { border-color: var(--accent); }
+    .func-card.ativo { border-color: var(--accent); background: rgba(79,110,247,0.05); }
+    .func-card .func-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #7b8eff); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .func-card .func-info { flex: 1; }
+    .func-card .func-nome { font-weight: 600; font-size: 14px; }
+    .func-card .func-qtd { font-size: 12px; color: var(--text-secondary); }
+    .func-card input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+
+    .resumo-distribuicao {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .resumo-distribuicao h4 { margin-bottom: 15px; color: var(--accent); }
+    .resumo-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .resumo-item:last-child { border-bottom: none; font-weight: 700; color: var(--accent); }
+
+    .funcionarios-table { width: 100%; }
+    .funcionarios-table th, .funcionarios-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+    .funcionarios-table th { background: var(--bg-tertiary); font-weight: 600; color: var(--text-secondary); }
+    .funcionarios-table tr:hover { background: rgba(79,110,247,0.03); }
+    .status-badge-inline { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .status-ativo { background: rgba(16,185,129,0.15); color: var(--success); }
+    .status-inativo { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.ativo { display: flex; }
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { font-size: 20px; margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 25px; justify-content: flex-end; }
+
+    .mensagem {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .mensagem.sucesso { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid var(--success); }
+    .mensagem.erro { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid var(--danger); }
+    .mensagem.info { background: rgba(79,110,247,0.1); color: var(--accent); border: 1px solid var(--accent); }
+    .mensagem.warning { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid var(--warning); }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11,15,30,0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .loading-overlay.ativo { display: flex; }
+    .spinner { border: 4px solid var(--bg-tertiary); border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loading-text { color: var(--text-secondary); font-size: 16px; }
+
+    /* ACESSIBILIDADE: foco visível ao navegar por teclado */
+    button:focus-visible, input:focus-visible, select:focus-visible,
+    .nav-tab:focus-visible, .modo-card:focus-visible, .func-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; gap: 10px; }
+      .container { padding: 15px; }
+      .secao { padding: 15px; }
+      .preview-toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { min-width: 100%; }
+      .distribuicao-modo { grid-template-columns: 1fr; }
+      .funcionarios-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      table { font-size: 12px; }
+      th, td { padding: 8px 10px; }
+    }
+
+    @media (max-width: 420px) {
+      .logo { font-size: 18px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card { padding: 14px; gap: 12px; }
+      .stat-icon { width: 40px; height: 40px; font-size: 18px; }
+      .stat-value { font-size: 22px; }
+      .nav-tab { padding: 12px 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <div class="logo">📊 CNPJ Manager</div>
+    <div style="display:flex;align-items:center;gap:15px;">
+      <div class="badge-admin">🔒 Administrador</div>
+    </div>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab ativo" data-tab="dashboard" onclick="switchTab('dashboard')">📈 Dashboard</button>
+  <button class="nav-tab" data-tab="upload" onclick="switchTab('upload')">📤 Upload & Distribuir</button>
+  <button class="nav-tab" data-tab="funcionarios" onclick="switchTab('funcionarios')">👥 Funcionários</button>
+  <button class="nav-tab" data-tab="listas" onclick="switchTab('listas')">📋 Listas Enviadas</button>
+</div>
+
+<div class="container">
+  <div id="mensagemGlobal" style="display:none;"></div>
+
+  <!-- TAB: DASHBOARD -->
+  <div class="tab-content ativo" id="tab-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">📊</div>
+        <div class="stat-info"><div class="stat-value" id="dashTotalListas">0</div><div class="stat-label">Listas Criadas</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-info"><div class="stat-value" id="dashTotalCNPJs">0</div><div class="stat-label">CNPJs Totais</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">👁️</div>
+        <div class="stat-info"><div class="stat-value" id="dashVisualizados">0</div><div class="stat-label">Visualizados</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">❌</div>
+        <div class="stat-info"><div class="stat-value" id="dashExcluidos">0</div><div class="stat-label">Excluídos</div></div>
+      </div>
+    </div>
+    <div class="secao">
+      <h2><span class="icon">📈</span> Atividade Recente</h2>
+      <div id="atividadeRecente"><p style="color:var(--text-secondary);text-align:center;padding:30px;">Carregando...</p></div>
+    </div>
+  </div>
+
+  <!-- TAB: UPLOAD -->
+  <div class="tab-content" id="tab-upload">
+    <div class="secao">
+      <h2><span class="icon">1️⃣</span> Fazer Upload do Arquivo .txt</h2>
+      <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="upload-icon">📤</div>
+        <div class="upload-text">Arraste o arquivo aqui</div>
+        <div class="upload-desc">ou clique para selecionar (apenas .txt)</div>
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📁 Selecionar Arquivo</button>
+        <input type="file" id="fileInput" class="file-input" accept=".txt" onchange="handleFileSelect(event)">
+      </div>
+      <div class="file-info" id="fileInfo">
+        <div class="file-info-row"><span class="file-info-label">📁 Arquivo:</span><span class="file-info-valor" id="fileName">-</span></div>
+        <div class="file-info-row"><span class="file-info-label">📦 Tamanho:</span><span class="file-info-valor" id="fileSize">-</span></div>
+        <div class="file-info-row"><span class="file-info-label">✅ CNPJs parseados:</span><span class="file-info-valor" id="totalCNPJs">-</span></div>
+        <div class="file-info-row"><span class="file-info-label">⚠️ Ignorados:</span><span class="file-info-valor" id="totalIgnorados">-</span></div>
+      </div>
+    </div>
+
+    <div class="secao" id="previewSecao" style="display:none;">
+      <h2><span class="icon">2️⃣</span> Preview e Seleção <span id="previewCount" style="font-size:14px;color:var(--text-secondary);"></span></h2>
+      <div class="preview-toolbar">
+        <div class="search-box"><input type="text" id="searchCNPJ" placeholder="Buscar por CNPJ, Razão Social, CPF..." aria-label="Buscar por CNPJ, Razão Social ou CPF" oninput="filtrarPreview()"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="selecionarTodos(true)">✅ Todos</button>
+          <button class="btn btn-secondary btn-sm" onclick="selecionarTodos(false)">⬜ Nenhum</button>
+          <button class="btn btn-secondary btn-sm" onclick="inverterSelecao()">🔄 Inverter</button>
+          <button class="btn btn-secondary btn-sm" onclick="selecionarIntervalo()">📍 Intervalo</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;"><input type="checkbox" id="checkAllHeader" onchange="selecionarTodos(this.checked)"></th>
+              <th>CNPJ</th><th>Razão Social</th><th>CPF</th><th>Nome</th><th>Renda</th><th>Telefones</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+      <div style="margin-top:15px;font-size:14px;color:var(--text-secondary);"><strong id="selectedCountPreview">0</strong> CNPJs selecionados</div>
+    </div>
+
+    <div class="secao" id="distribuicaoSecao" style="display:none;">
+      <h2><span class="icon">3️⃣</span> Distribuir para Funcionários</h2>
+      <div class="distribuicao-modo">
+        <div class="modo-card ativo" data-modo="quantidade" onclick="setModoDistribuicao('quantidade')">
+          <div class="modo-icon">🔢</div><div class="modo-titulo">Por Quantidade</div><div class="modo-desc">Defina quantos CNPJs cada um recebe</div>
+        </div>
+        <div class="modo-card" data-modo="porcentagem" onclick="setModoDistribuicao('porcentagem')">
+          <div class="modo-icon">📊</div><div class="modo-titulo">Por Porcentagem</div><div class="modo-desc">Divide proporcionalmente (%)</div>
+        </div>
+        <div class="modo-card" data-modo="manual" onclick="setModoDistribuicao('manual')">
+          <div class="modo-icon">✋</div><div class="modo-titulo">Manual</div><div class="modo-desc">Escolha quem recebe (recebe igual)</div>
+        </div>
+      </div>
+      <div class="distribuicao-config ativo" id="config-quantidade">
+        <div class="input-group"><label>Quantidade por funcionário:</label><input type="number" id="qtdPorFunc" value="100" min="1" onchange="calcularDistribuicao()"></div>
+      </div>
+      <div class="distribuicao-config" id="config-porcentagem"><div id="pctInputs"></div></div>
+      <div class="distribuicao-config" id="config-manual"><p style="color:var(--text-secondary);font-size:14px;">Os CNPJs selecionados serão divididos igualmente entre os funcionários marcados abaixo.</p></div>
+      <h3 style="margin:20px 0 15px;font-size:16px;">👥 Selecione os Funcionários:</h3>
+      <div class="funcionarios-grid" id="funcionariosDistribuicao"></div>
+      <div class="resumo-distribuicao" id="resumoDistribuicao" style="display:none;">
+        <h4>📋 Resumo da Distribuição</h4>
+        <div id="resumoContent"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="btn btn-success" onclick="distribuirLista()" id="btnDistribuir">📤 Distribuir Agora</button>
+        <button class="btn btn-secondary" onclick="calcularDistribuicao()">🔄 Calcular</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: FUNCIONARIOS -->
+  <div class="tab-content" id="tab-funcionarios">
+    <div class="secao">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <h2 style="margin:0;"><span class="icon">👥</span> Gerenciar Funcionários</h2>
+        <button class="btn btn-primary" onclick="abrirModalFuncionario()">➕ Novo Funcionário</button>
+      </div>
+      <div class="table-container">
+        <table class="funcionarios-table">
+          <thead>
+            <tr><th>ID</th><th>Nome</th><th>Status</th><th>Listas Recebidas</th><th>CNPJs Totais</th><th>Criado em</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="funcionariosTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: LISTAS -->
+  <div class="tab-content" id="tab-listas">
+    <div class="secao">
+      <h2><span class="icon">📋</span> Listas Enviadas</h2>
+      <div id="listasContainer"><p style="color:var(--text-secondary);text-align:center;padding:30px;">Carregando listas...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FUNCIONARIO -->
+<div class="modal-overlay" id="modalFuncionario">
+  <div class="modal">
+    <h3 id="modalFuncTitle">➕ Novo Funcionário</h3>
+    <div class="input-group"><label>Nome do Funcionário:</label><input type="text" id="funcNomeInput" placeholder="Ex: João Silva"></div>
+    <div class="input-group"><label>Status:</label><select id="funcStatusInput"><option value="1">Ativo</option><option value="0">Inativo</option></select></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="fecharModalFuncionario()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFuncionario()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Processando...</div>
+</div>
+
+<script>
+const API_URL = 'https://nutcase-harmful-debating.ngrok-free.dev';
+let cnpjsParseados = [];
+let cnpjsSelecionados = new Set();
+let funcionariosDisponiveis = [];
+let modoDistribuicao = 'quantidade';
+let paginaAtual = 1;
+let itensPorPagina = 100;
+let filtroBusca = '';
+let funcionarioEditando = null;
+
+// SEGURANÇA: evita XSS ao inserir dados vindos do servidor/upload no HTML
+function escapeHtml(valor) {
+  if (valor === null || valor === undefined) return '';
+  return String(valor)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// SEGURANÇA: pequeno atraso na busca para não filtrar a cada tecla (ajuda em listas grandes)
+function debounce(fn, atraso) {
+  var timer = null;
+  return function() {
+    var args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function() { fn.apply(null, args); }, atraso);
+  };
+}
+
+// Evita a página de aviso do ngrok, que bloqueia a chamada por CORS
+function apiFetch(url, options) {
+  options = options || {};
+  options.headers = Object.assign({ 'ngrok-skip-browser-warning': 'true' }, options.headers || {});
+  return fetch(url, options);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  carregarFuncionarios();
+  carregarDashboard();
+  carregarListas();
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('ativo'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('ativo'));
+  document.querySelector('[data-tab="' + tab + '"]').classList.add('ativo');
+  document.getElementById('tab-' + tab).classList.add('ativo');
+  if (tab === 'funcionarios') renderizarTabelaFuncionarios();
+  if (tab === 'listas') carregarListas();
+  if (tab === 'dashboard') carregarDashboard();
+}
+
+function mostrarMensagem(msg, tipo, target) {
+  target = target || 'mensagemGlobal';
+  const div = document.getElementById(target);
+  div.className = 'mensagem ' + tipo;
+  div.innerHTML = msg;
+  div.style.display = 'flex';
+  setTimeout(function() { div.style.display = 'none'; }, 6000);
+}
+
+function showLoading(text) {
+  document.getElementById('loadingText').textContent = text || 'Processando...';
+  document.getElementById('loadingOverlay').classList.add('ativo');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('ativo');
+}
+
+// UPLOAD
+function handleDragOver(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('uploadArea').classList.add('drag-over'); }
+function handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('uploadArea').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('uploadArea').classList.remove('drag-over');
+  var files = e.dataTransfer.files;
+  if (files.length > 0) { document.getElementById('fileInput').files = files; handleFileSelect(); }
+}
+
+async function handleFileSelect(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  var file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.txt')) { mostrarMensagem('Apenas arquivos .txt são permitidos', 'erro'); return; }
+
+  var formData = new FormData();
+  formData.append('arquivo', file);
+  showLoading('Enviando e parseando arquivo...');
+
+  try {
+    var response = await apiFetch(API_URL + '/api/admin/upload', { method: 'POST', body: formData });
+    var data = await response.json();
+    hideLoading();
+    if (!data.success) { mostrarMensagem(data.message || 'Erro ao fazer upload', 'erro'); return; }
+
+    cnpjsParseados = data.cnpjs;
+    cnpjsSelecionados = new Set(cnpjsParseados.map(function(c) { return c.cnpj; }));
+
+    document.getElementById('fileInfo').classList.add('ativo');
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+    document.getElementById('totalCNPJs').textContent = data.detalhes.total_parseados.toLocaleString('pt-BR');
+    document.getElementById('totalIgnorados').textContent = data.detalhes.ignorados.toLocaleString('pt-BR');
+
+    document.getElementById('previewSecao').style.display = 'block';
+    document.getElementById('distribuicaoSecao').style.display = 'block';
+    paginaAtual = 1;
+    renderizarPreview();
+    renderizarFuncionariosDistribuicao();
+    calcularDistribuicao();
+    mostrarMensagem('✅ ' + data.detalhes.total_parseados.toLocaleString('pt-BR') + ' CNPJs carregados!', 'sucesso');
+  } catch (err) {
+    hideLoading();
+    console.error('Erro:', err);
+    mostrarMensagem('Erro ao conectar com servidor', 'erro');
+  }
+}
+
+// PREVIEW
+function renderizarPreview() {
+  var filtrados = getCNPJsFiltrados();
+  var totalPaginas = Math.ceil(filtrados.length / itensPorPagina);
+  var inicio = (paginaAtual - 1) * itensPorPagina;
+  var pagina = filtrados.slice(inicio, inicio + itensPorPagina);
+
+  var tbody = document.getElementById('previewTableBody');
+  tbody.innerHTML = pagina.map(function(c, idx) {
+    var realIdx = inicio + idx;
+    var selecionado = cnpjsSelecionados.has(c.cnpj);
+    var cnpjAttr = escapeHtml(c.cnpj);
+    return '<tr class="' + (selecionado ? 'selecionado' : '') + '" data-idx="' + realIdx + '">' +
+      '<td><input type="checkbox" ' + (selecionado ? 'checked' : '') + ' onchange="toggleCNPJ(\'' + cnpjAttr + '\', this.checked)" data-cnpj="' + cnpjAttr + '" aria-label="Selecionar CNPJ ' + cnpjAttr + '"></td>' +
+      '<td class="cnpj-cell">' + escapeHtml(c.cnpj) + '</td>' +
+      '<td class="razao-cell" title="' + escapeHtml(c.razao_social || '') + '">' + escapeHtml(c.razao_social || 'N/A') + '</td>' +
+      '<td>' + escapeHtml(c.cpf || 'N/A') + '</td>' +
+      '<td>' + escapeHtml((c.nome_pessoa || 'N/A').substring(0, 25)) + ((c.nome_pessoa || '').length > 25 ? '...' : '') + '</td>' +
+      '<td>' + escapeHtml(c.renda || 'N/A') + '</td>' +
+      '<td>' + escapeHtml((c.telefones || 'N/A').substring(0, 30)) + ((c.telefones || '').length > 30 ? '...' : '') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('previewCount').textContent = '(' + filtrados.length.toLocaleString('pt-BR') + ' total)';
+  document.getElementById('selectedCountPreview').textContent = cnpjsSelecionados.size.toLocaleString('pt-BR');
+  renderizarPaginacao(totalPaginas);
+}
+
+function getCNPJsFiltrados() {
+  if (!filtroBusca) return cnpjsParseados;
+  var busca = filtroBusca.toLowerCase();
+  return cnpjsParseados.filter(function(c) {
+    return (c.cnpj || '').toLowerCase().includes(busca) ||
+           (c.razao_social || '').toLowerCase().includes(busca) ||
+           (c.cpf || '').toLowerCase().includes(busca) ||
+           (c.nome_pessoa || '').toLowerCase().includes(busca) ||
+           (c.telefones || '').toLowerCase().includes(busca);
+  });
+}
+
+var filtrarPreview = debounce(function() {
+  filtroBusca = document.getElementById('searchCNPJ').value;
+  paginaAtual = 1;
+  renderizarPreview();
+}, 250);
+
+function renderizarPaginacao(totalPaginas) {
+  if (totalPaginas <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+  var html = '<button class="page-btn" onclick="mudarPagina(' + (paginaAtual - 1) + ')" aria-label="Página anterior" ' + (paginaAtual === 1 ? 'disabled' : '') + '>◀</button>';
+  var maxBotoes = 7;
+  var inicio = Math.max(1, paginaAtual - 3);
+  var fim = Math.min(totalPaginas, inicio + maxBotoes - 1);
+  if (fim - inicio < maxBotoes - 1) inicio = Math.max(1, fim - maxBotoes + 1);
+  if (inicio > 1) html += '<button class="page-btn" onclick="mudarPagina(1)">1</button><span style="color:var(--text-secondary);">...</span>';
+  for (var i = inicio; i <= fim; i++) {
+    html += '<button class="page-btn ' + (i === paginaAtual ? 'ativo' : '') + '" onclick="mudarPagina(' + i + ')" aria-current="' + (i === paginaAtual ? 'page' : 'false') + '">' + i + '</button>';
+  }
+  if (fim < totalPaginas) html += '<span style="color:var(--text-secondary);">...</span><button class="page-btn" onclick="mudarPagina(' + totalPaginas + ')">' + totalPaginas + '</button>';
+  html += '<button class="page-btn" onclick="mudarPagina(' + (paginaAtual + 1) + ')" aria-label="Próxima página" ' + (paginaAtual === totalPaginas ? 'disabled' : '') + '>▶</button>';
+  html += '<span style="color:var(--text-secondary);font-size:13px;margin-left:10px;">Página ' + paginaAtual + ' de ' + totalPaginas + '</span>';
+  document.getElementById('pagination').innerHTML = html;
+}
+
+function mudarPagina(p) {
+  var totalPaginas = Math.ceil(getCNPJsFiltrados().length / itensPorPagina);
+  if (p < 1 || p > totalPaginas) return;
+  paginaAtual = p;
+  renderizarPreview();
+  document.querySelector('.table-container').scrollTop = 0;
+}
+
+function toggleCNPJ(cnpj, checked) {
+  if (checked) cnpjsSelecionados.add(cnpj);
+  else cnpjsSelecionados.delete(cnpj);
+  renderizarPreview();
+}
+
+function selecionarTodos(checked) {
+  var filtrados = getCNPJsFiltrados();
+  filtrados.forEach(function(c) {
+    if (checked) cnpjsSelecionados.add(c.cnpj);
+    else cnpjsSelecionados.delete(c.cnpj);
+  });
+  document.getElementById('checkAllHeader').checked = checked;
+  renderizarPreview();
+}
+
+function inverterSelecao() {
+  var filtrados = getCNPJsFiltrados();
+  filtrados.forEach(function(c) {
+    if (cnpjsSelecionados.has(c.cnpj)) cnpjsSelecionados.delete(c.cnpj);
+    else cnpjsSelecionados.add(c.cnpj);
+  });
+  renderizarPreview();
+}
+
+function selecionarIntervalo() {
+  var inicio = prompt('Índice inicial (começando em 1):');
+  var fim = prompt('Índice final:');
+  if (!inicio || !fim) return;
+  var i = parseInt(inicio) - 1;
+  var f = parseInt(fim);
+  var filtrados = getCNPJsFiltrados();
+  var count = 0;
+  for (var idx = i; idx < f && idx < filtrados.length; idx++) {
+    cnpjsSelecionados.add(filtrados[idx].cnpj);
+    count++;
+  }
+  renderizarPreview();
+  mostrarMensagem('✅ ' + count + ' CNPJs selecionados no intervalo', 'sucesso');
+}
+
+// DISTRIBUICAO
+function setModoDistribuicao(modo) {
+  modoDistribuicao = modo;
+  document.querySelectorAll('.modo-card').forEach(function(c) { c.classList.remove('ativo'); });
+  document.querySelector('[data-modo="' + modo + '"]').classList.add('ativo');
+  document.querySelectorAll('.distribuicao-config').forEach(function(c) { c.classList.remove('ativo'); });
+  document.getElementById('config-' + modo).classList.add('ativo');
+  calcularDistribuicao();
+}
+
+function renderizarFuncionariosDistribuicao() {
+  var grid = document.getElementById('funcionariosDistribuicao');
+  var ativos = funcionariosDisponiveis.filter(function(f) { return f.ativo; });
+  if (ativos.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px;">Nenhum funcionário ativo. Cadastre funcionários primeiro.</p>';
+    return;
+  }
+  grid.innerHTML = ativos.map(function(f) {
+    return '<div class="func-card" data-func="' + f.id + '" onclick="toggleFuncionarioCard(' + f.id + ')">' +
+      '<div class="func-avatar">' + escapeHtml(f.nome.charAt(0).toUpperCase()) + '</div>' +
+      '<div class="func-info"><div class="func-nome">' + escapeHtml(f.nome) + '</div><div class="func-qtd" id="qtd-func-' + f.id + '">0 CNPJs</div></div>' +
+      '<input type="checkbox" id="chk-func-' + f.id + '" checked onchange="event.stopPropagation();calcularDistribuicao();" aria-label="Incluir ' + escapeHtml(f.nome) + ' na distribuição">' +
+      '</div>';
+  }).join('');
+}
+
+function toggleFuncionarioCard(id) {
+  var chk = document.getElementById('chk-func-' + id);
+  chk.checked = !chk.checked;
+  calcularDistribuicao();
+}
+
+function calcularDistribuicao() {
+  var selecionados = Array.from(cnpjsSelecionados);
+  var funcs = getFuncionariosSelecionados();
+  if (funcs.length === 0 || selecionados.length === 0) {
+    document.getElementById('resumoDistribuicao').style.display = 'none';
+    return;
+  }
+  var distribuicao = {};
+  if (modoDistribuicao === 'quantidade') {
+    var qtd = parseInt(document.getElementById('qtdPorFunc').value) || 100;
+    funcs.forEach(function(f, i) {
+      var ini = i * qtd;
+      var fim = Math.min(ini + qtd, selecionados.length);
+      distribuicao[f.id] = Math.max(0, fim - ini);
+    });
+  } else if (modoDistribuicao === 'porcentagem') {
+    var pct = 100 / funcs.length;
+    funcs.forEach(function(f, i) {
+      distribuicao[f.id] = Math.floor(selecionados.length * (pct / 100));
+    });
+    var resto = selecionados.length;
+    funcs.forEach(function(f) { resto -= distribuicao[f.id]; });
+    funcs.forEach(function(f, i) { if (resto > 0) { distribuicao[f.id]++; resto--; } });
+  } else {
+    var qtdBase = Math.floor(selecionados.length / funcs.length);
+    funcs.forEach(function(f) { distribuicao[f.id] = qtdBase; });
+    var resto = selecionados.length - (qtdBase * funcs.length);
+    funcs.forEach(function(f, i) { if (resto > 0) { distribuicao[f.id]++; resto--; } });
+  }
+  funcs.forEach(function(f) {
+    var el = document.getElementById('qtd-func-' + f.id);
+    if (el) el.textContent = (distribuicao[f.id] || 0) + ' CNPJs';
+  });
+  var html = '';
+  var total = 0;
+  funcs.forEach(function(f) {
+    var qtd = distribuicao[f.id] || 0;
+    total += qtd;
+    html += '<div class="resumo-item"><span>' + escapeHtml(f.nome) + '</span><span>' + qtd + ' CNPJs</span></div>';
+  });
+  html += '<div class="resumo-item"><span>Total Selecionado</span><span>' + total + ' CNPJs</span></div>';
+  document.getElementById('resumoContent').innerHTML = html;
+  document.getElementById('resumoDistribuicao').style.display = 'block';
+  window.distribuicaoCalculada = distribuicao;
+}
+
+function getFuncionariosSelecionados() {
+  return funcionariosDisponiveis.filter(function(f) {
+    return f.ativo && document.getElementById('chk-func-' + f.id) && document.getElementById('chk-func-' + f.id).checked;
+  });
+}
+
+async function distribuirLista() {
+  var selecionados = Array.from(cnpjsSelecionados);
+  var funcs = getFuncionariosSelecionados();
+  if (selecionados.length === 0) { mostrarMensagem('Selecione pelo menos um CNPJ', 'erro'); return; }
+  if (funcs.length === 0) { mostrarMensagem('Selecione pelo menos um funcionário', 'erro'); return; }
+  var cnpjsParaSalvar = cnpjsParseados.filter(function(c) { return cnpjsSelecionados.has(c.cnpj); });
+  showLoading('Salvando lista e distribuindo...');
+  try {
+    var respSalvar = await apiFetch(API_URL + '/api/admin/salvar-lista', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome_lista: 'Lista ' + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'), cnpjs: cnpjsParaSalvar })
+    });
+    var dataSalvar = await respSalvar.json();
+    if (!dataSalvar.success) { hideLoading(); mostrarMensagem(dataSalvar.message || 'Erro ao salvar lista', 'erro'); return; }
+    var listaId = dataSalvar.detalhes.lista_id;
+    var funcIds = funcs.map(function(f) { return f.id; });
+    var respDist = await apiFetch(API_URL + '/api/admin/distribuir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lista_id: listaId, funcionario_ids: funcIds, modo: modoDistribuicao, quantidade_por_func: parseInt(document.getElementById('qtdPorFunc').value) || 100 })
+    });
+    var dataDist = await respDist.json();
+    hideLoading();
+    if (dataDist.success) {
+      mostrarMensagem('✅ Lista distribuída! ' + (dataDist.detalhes && dataDist.detalhes.total_distribuido ? dataDist.detalhes.total_distribuido : selecionados.length) + ' CNPJs para ' + funcIds.length + ' funcionários.', 'sucesso');
+      setTimeout(function() { window.location.reload(); }, 3000);
+    } else {
+      mostrarMensagem(dataDist.message || 'Erro ao distribuir', 'erro');
+    }
+  } catch (err) {
+    hideLoading();
+    console.error('Erro:', err);
+    mostrarMensagem('Erro ao conectar com servidor', 'erro');
+  }
+}
+
+// FUNCIONARIOS CRUD
+async function carregarFuncionarios() {
+  try {
+    var response = await apiFetch(API_URL + '/api/admin/funcionarios');
+    var data = await response.json();
+    if (data.success) {
+      funcionariosDisponiveis = data.funcionarios;
+      renderizarFuncionariosDistribuicao();
+    }
+  } catch (err) { console.error('Erro:', err); }
+}
+
+function renderizarTabelaFuncionarios() {
+  var tbody = document.getElementById('funcionariosTableBody');
+  if (funcionariosDisponiveis.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:30px;">Nenhum funcionário cadastrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = funcionariosDisponiveis.map(function(f) {
+    return '<tr>' +
+      '<td>#' + f.id + '</td>' +
+      '<td><strong>' + escapeHtml(f.nome) + '</strong></td>' +
+      '<td><span class="status-badge-inline ' + (f.ativo ? 'status-ativo' : 'status-inativo') + '">' + (f.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
+      '<td>' + (f.total_listas || 0) + '</td>' +
+      '<td>' + (f.total_cnpjs || 0) + '</td>' +
+      '<td>' + new Date(f.criado_em).toLocaleDateString('pt-BR') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-secondary btn-sm" onclick="editarFuncionario(' + f.id + ')" aria-label="Editar ' + escapeHtml(f.nome) + '">✏️</button> ' +
+        '<button class="btn ' + (f.ativo ? 'btn-danger' : 'btn-success') + ' btn-sm" onclick="toggleStatusFuncionario(' + f.id + ', ' + (!f.ativo) + ')" aria-label="' + (f.ativo ? 'Desativar' : 'Ativar') + ' ' + escapeHtml(f.nome) + '">' + (f.ativo ? '🚫' : '✅') + '</button>' +
+      '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function abrirModalFuncionario() {
+  funcionarioEditando = null;
+  document.getElementById('modalFuncTitle').textContent = '➕ Novo Funcionário';
+  document.getElementById('funcNomeInput').value = '';
+  document.getElementById('funcStatusInput').value = '1';
+  document.getElementById('modalFuncionario').classList.add('ativo');
+}
+function fecharModalFuncionario() {
+  document.getElementById('modalFuncionario').classList.remove('ativo');
+  funcionarioEditando = null;
+}
+function editarFuncionario(id) {
+  var f = funcionariosDisponiveis.find(function(x) { return x.id === id; });
+  if (!f) return;
+  funcionarioEditando = id;
+  document.getElementById('modalFuncTitle').textContent = '✏️ Editar Funcionário';
+  document.getElementById('funcNomeInput').value = f.nome;
+  document.getElementById('funcStatusInput').value = f.ativo ? '1' : '0';
+  document.getElementById('modalFuncionario').classList.add('ativo');
+}
+
+async function salvarFuncionario() {
+  var nome = document.getElementById('funcNomeInput').value.trim();
+  var ativo = document.getElementById('funcStatusInput').value === '1';
+  if (!nome) { mostrarMensagem('Digite um nome', 'erro'); return; }
+  showLoading('Salvando...');
+  try {
+    var url = funcionarioEditando ? API_URL + '/api/admin/funcionario/' + funcionarioEditando : API_URL + '/api/admin/funcionario';
+    var method = funcionarioEditando ? 'PUT' : 'POST';
+    var response = await apiFetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: nome, ativo: ativo })
+    });
+    var data = await response.json();
+    hideLoading();
+    if (data.success) {
+      mostrarMensagem(funcionarioEditando ? '✅ Funcionário atualizado!' : '✅ Funcionário criado!', 'sucesso');
+      fecharModalFuncionario();
+      await carregarFuncionarios();
+      renderizarTabelaFuncionarios();
+    } else {
+      mostrarMensagem(data.message || 'Erro ao salvar', 'erro');
+    }
+  } catch (err) {
+    hideLoading();
+    mostrarMensagem('Erro ao conectar', 'erro');
+  }
+}
+
+async function toggleStatusFuncionario(id, novoStatus) {
+  var f = funcionariosDisponiveis.find(function(x) { return x.id === id; });
+  if (!f) return;
+  showLoading('Atualizando...');
+  try {
+    var response = await apiFetch(API_URL + '/api/admin/funcionario/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: f.nome, ativo: novoStatus })
+    });
+    var data = await response.json();
+    hideLoading();
+    if (data.success) {
+      mostrarMensagem('✅ Funcionário ' + (novoStatus ? 'ativado' : 'desativado') + '!', 'sucesso');
+      await carregarFuncionarios();
+      renderizarTabelaFuncionarios();
+    } else {
+      mostrarMensagem(data.message || 'Erro', 'erro');
+    }
+  } catch (err) {
+    hideLoading();
+    mostrarMensagem('Erro ao conectar', 'erro');
+  }
+}
+
+// DASHBOARD
+async function carregarDashboard() {
+  try {
+    var response = await apiFetch(API_URL + '/api/admin/dashboard');
+    var data = await response.json();
+    if (data.success) {
+      document.getElementById('dashTotalListas').textContent = data.stats.total_listas || 0;
+      document.getElementById('dashTotalCNPJs').textContent = (data.stats.total_cnpjs || 0).toLocaleString('pt-BR');
+      document.getElementById('dashVisualizados').textContent = (data.stats.total_visualizados || 0).toLocaleString('pt-BR');
+      document.getElementById('dashExcluidos').textContent = (data.stats.total_excluidos || 0).toLocaleString('pt-BR');
+      var container = document.getElementById('atividadeRecente');
+      if (data.atividade && data.atividade.length > 0) {
+        container.innerHTML = data.atividade.map(function(a) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">' +
+            '<div><div style="font-weight:600;">' + escapeHtml(a.descricao) + '</div>' +
+            '<div style="font-size:12px;color:var(--text-secondary);">' + escapeHtml(a.funcionario_nome || 'Admin') + ' • ' + new Date(a.data).toLocaleString('pt-BR') + '</div></div>' +
+            '<span class="status-badge-inline ' + (a.tipo === 'visualizado' ? 'status-ativo' : a.tipo === 'excluido' ? 'status-inativo' : '') + '">' + escapeHtml(a.tipo) + '</span>' +
+            '</div>';
+        }).join('');
+      } else {
+        container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px;">Nenhuma atividade recente</p>';
+      }
+    }
+  } catch (err) { console.error('Erro dashboard:', err); }
+}
+
+// LISTAS
+async function carregarListas() {
+  try {
+    var response = await apiFetch(API_URL + '/api/admin/listas');
+    var data = await response.json();
+    var container = document.getElementById('listasContainer');
+    if (!data.success || !data.listas || data.listas.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:30px;">Nenhuma lista enviada ainda</p>';
+      return;
+    }
+    container.innerHTML = data.listas.map(function(l) {
+      return '<div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:15px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px;">' +
+        '<div><div style="font-size:16px;font-weight:700;">' + escapeHtml(l.nome_lista) + '</div>' +
+        '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Enviada em ' + new Date(l.data_envio).toLocaleString('pt-BR') + '</div></div>' +
+        '<div style="display:flex;gap:8px;">' +
+        '<span style="background:rgba(79,110,247,0.1);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">' + l.total_cnpjs + ' CNPJs</span>' +
+        '<span style="background:rgba(16,185,129,0.1);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">' + (l.visualizados || 0) + ' ✅</span>' +
+        '<span style="background:rgba(239,68,68,0.1);color:var(--danger);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">' + (l.excluidos || 0) + ' ❌</span>' +
+        '</div></div>' +
+        '<div style="margin-top:15px;font-size:13px;color:var(--text-secondary);"><strong>Funcionários:</strong> ' + (l.funcionarios ? escapeHtml(l.funcionarios.map(function(f) { return f.nome; }).join(', ')) : 'N/A') + '</div>' +
+        '</div>';
+    }).join('');
+  } catch (err) {
+    console.error('Erro listas:', err);
+    document.getElementById('listasContainer').innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:30px;">Erro ao carregar listas</p>';
+  }
+}
+</script>
+</body>
+</html>

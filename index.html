@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista BradescoPJ - Funcionário</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0B0F1E;
+      --bg-secondary: #1a1f3a;
+      --bg-tertiary: #252d4a;
+      --accent: #4F6EF7;
+      --accent-hover: #3d57d4;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b8d4;
+      --border: #2d3555;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --whatsapp: #25D366;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo { font-size: 22px; font-weight: 700; color: var(--accent); }
+
+    .funcionario-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #7b8eff);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+    }
+
+    .funcionario-nome {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .funcionario-nome span:first-child { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+    .funcionario-nome span:last-child { font-size: 15px; font-weight: 600; }
+
+    .btn-sair {
+      background: var(--danger); color: white; border: none;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer;
+      font-weight: 600; transition: all 0.3s ease; font-size: 13px;
+    }
+    .btn-sair:hover { background: #dc2626; transform: translateY(-2px); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    .selecao-funcionario {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .selecao-funcionario.ativo { display: flex; }
+
+    .modal-selecao {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    .modal-selecao h2 { font-size: 26px; margin-bottom: 8px; color: var(--accent); }
+    .modal-selecao p { color: var(--text-secondary); margin-bottom: 30px; font-size: 16px; }
+
+    .grid-funcionarios {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .card-funcionario {
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-funcionario:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 8px 25px rgba(79,110,247,0.15); }
+    .card-funcionario .avatar { width: 55px; height: 55px; font-size: 24px; }
+    .card-funcionario .nome { font-weight: 600; font-size: 14px; }
+
+    .abas-container {
+      display: flex;
+      gap: 0;
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .aba {
+      padding: 14px 22px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .aba:hover { color: var(--text-primary); }
+    .aba.ativo { color: var(--accent); border-bottom-color: var(--accent); }
+    .aba-badge {
+      display: inline-block;
+      background: var(--bg-tertiary);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 6px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .lista-selector {
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .lista-selector label { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
+    .lista-selector select {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 15px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .lista-selector select:hover, .lista-selector select:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(79,110,247,0.1);
+    }
+
+    .lista-cnpjs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 768px) {
+      .lista-cnpjs { grid-template-columns: 1fr; }
+      .grid-funcionarios { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .card-cnpj {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .card-cnpj:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(79,110,247,0.15);
+      transform: translateY(-4px);
+    }
+
+    .card-cnpj.visualizado { opacity: 0.6; border-color: var(--success); }
+    .card-cnpj.excluido { opacity: 0.4; border-color: var(--danger); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 10px;
+    }
+
+    .cnpj-info { flex: 1; }
+    .cnpj-numero { font-size: 18px; font-weight: 700; color: var(--accent); font-family: 'Courier New', monospace; }
+    .razao-social { font-size: 13px; color: var(--text-secondary); margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-badge.pendente { background: rgba(79,110,247,0.2); color: var(--accent); }
+    .status-badge.visualizado { background: rgba(16,185,129,0.2); color: var(--success); }
+    .status-badge.excluido { background: rgba(239,68,68,0.2); color: var(--danger); }
+
+    .card-dados {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .dado {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .dado-label { color: var(--text-secondary); font-weight: 600; }
+    .dado-valor { color: var(--text-primary); font-weight: 500; font-family: 'Courier New', monospace; word-break: break-all; }
+
+    .contato { padding: 12px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid var(--accent); }
+    .contato-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-bottom: 5px; }
+    .contato-valor { font-size: 14px; color: var(--text-primary); font-family: 'Courier New', monospace; }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-detalhes { background: var(--accent); color: white; }
+    .btn-detalhes:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-2px); }
+
+    .btn-visualizado { background: var(--success); color: white; }
+    .btn-visualizado:hover:not(:disabled) { background: #059669; transform: translateY(-2px); }
+
+    .btn-excluir { background: var(--danger); color: white; }
+    .btn-excluir:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* MODAL DETALHES */
+    .modal-detalhes {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-detalhes.ativo { display: flex; }
+
+    .modal-detalhes-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 15px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .btn-fechar {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-fechar:hover {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .modal-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .info-item {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-valor {
+      font-size: 16px;
+      color: var(--text-primary);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    /* TELEFONES COM BOTÕES */
+    .telefones-container {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .telefones-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .telefone-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .telefone-item:last-child { margin-bottom: 0; }
+
+    .telefone-numero {
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      flex: 1;
+    }
+
+    .telefone-botoes {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-whatsapp {
+      background: var(--whatsapp);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+    }
+
+    .btn-whatsapp:hover { background: #1fad50; transform: translateY(-2px); }
+
+    .btn-ligar {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+    }
+
+    .btn-ligar:hover { background: var(--accent-hover); transform: translateY(-2px); }
+
+    .modal-acoes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-acoes .btn { flex: 1; }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      border: 3px solid var(--bg-tertiary);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .mensagem {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      z-index: 9999;
+      max-width: 350px;
+    }
+
+    .mensagem.sucesso {
+      background: rgba(16,185,129,0.1);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .mensagem.erro {
+      background: rgba(239,68,68,0.1);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .mensagem.vazio {
+      text-align: center;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      border: 1px dashed var(--border);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: rgba(79,110,247,0.1);
+    }
+
+    .page-btn.ativo {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      .modal-info { grid-template-columns: 1fr; }
+      .telefone-item { flex-direction: column; align-items: flex-start; }
+      .telefone-botoes { width: 100%; }
+      .btn-whatsapp, .btn-ligar { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-content">
+    <div class="logo">📋 Lista BradescoPJ</div>
+    <div class="funcionario-info">
+      <div class="avatar" id="avatarHeader">👤</div>
+      <div class="funcionario-nome">
+        <span>Funcionário</span>
+        <span id="nomeHeader">Selecione</span>
+      </div>
+      <button class="btn-sair" onclick="trocarFuncionario()">Trocar</button>
+    </div>
+  </div>
+</header>
+
+<!-- MODAL SELEÇÃO -->
+<div class="selecao-funcionario ativo" id="modalSelecao">
+  <div class="modal-selecao">
+    <h2>Bem-vindo! 👋</h2>
+    <p>Selecione seu usuário para começar</p>
+    <div class="grid-funcionarios" id="gridFuncionarios"></div>
+  </div>
+</div>
+
+<!-- MODAL DETALHES -->
+<div class="modal-detalhes" id="modalDetalhes">
+  <div class="modal-detalhes-content">
+    <div class="modal-header">
+      <h2 id="detalhesTitle">Detalhes CNPJ</h2>
+      <button class="btn-fechar" onclick="fecharDetalhes()">✕</button>
+    </div>
+
+    <div class="modal-info">
+      <div class="info-item">
+        <div class="info-label">CNPJ</div>
+        <div class="info-valor" id="detalhesCNPJ">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Razão Social</div>
+        <div class="info-valor" id="detalhesRazao">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">CPF</div>
+        <div class="info-valor" id="detalhesCPF">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Nome</div>
+        <div class="info-valor" id="detalhesNome">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Renda</div>
+        <div class="info-valor" id="detalhesRenda">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Idade</div>
+        <div class="info-valor" id="detalhesIdade">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Nascimento</div>
+        <div class="info-valor" id="detalhesNascimento">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Agência (AG)</div>
+        <div class="info-valor" id="detalhesAG">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Conta Corrente (CC)</div>
+        <div class="info-valor" id="detalhesCC">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Email</div>
+        <div class="info-valor" id="detalhesEmail">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Endereço</div>
+        <div class="info-valor" id="detalhesEndereco">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Status</div>
+        <div class="info-valor" id="detalhesStatus">-</div>
+      </div>
+    </div>
+
+    <!-- TELEFONES -->
+    <div class="telefones-container" id="telefonesContainer" style="display: none;">
+      <div class="telefones-label">📞 Telefones</div>
+      <div id="telefonesList"></div>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="modal-acoes" id="acoesModal"></div>
+  </div>
+</div>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<div class="container" id="conteudoPrincipal" style="display: none;">
+  
+  <!-- SELETOR DE LISTA -->
+  <div class="lista-selector">
+    <label for="selectLista">📑 Selecione a lista:</label>
+    <select id="selectLista" onchange="carregarCNPJs()">
+      <option value="">Carregando listas...</option>
+    </select>
+  </div>
+
+  <!-- ABAS DE STATUS -->
+  <div class="abas-container">
+    <button class="aba ativo" data-status="pendente" onclick="filtrarStatus('pendente')">
+      📌 Pendentes
+      <span class="aba-badge" id="badge-pendente">0</span>
+    </button>
+    <button class="aba" data-status="visualizado" onclick="filtrarStatus('visualizado')">
+      ✅ Visualizados
+      <span class="aba-badge" id="badge-visualizado">0</span>
+    </button>
+    <button class="aba" data-status="excluido" onclick="filtrarStatus('excluido')">
+      ❌ Excluídos
+      <span class="aba-badge" id="badge-excluido">0</span>
+    </button>
+  </div>
+
+  <!-- LISTA DE CNPJS -->
+  <div id="listaCNPJs" class="lista-cnpjs"></div>
+
+  <!-- PAGINAÇÃO -->
+  <div id="pagination" class="pagination"></div>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+  const API_URL = 'https://nutcase-harmful-debating.ngrok-free.dev';
+  let funcionarioAtual = null;
+  let listaAtual = null;
+  let cnpjsCarregados = [];
+  let cnpjsFiltrados = [];
+  let statusFiltro = 'pendente';
+  let paginaAtual = 1;
+  const itensPorPagina = 9;
+
+  let funcionarios = [];
+  const EMOJIS_FUNCIONARIO = ['👨','👩','👨‍💼','👩‍💼','🧑','👱','🧔','👩‍🦰'];
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+  }
+
+  function apiFetch(url, options = {}) {
+    options.headers = Object.assign(
+      { 'ngrok-skip-browser-warning': 'true' },
+      options.headers || {}
+    );
+    return fetch(url, options);
+  }
+
+  function init() {
+    carregarListasSeExistir();
+  }
+
+  async function carregarFuncionariosDoBanco() {
+    const grid = document.getElementById('gridFuncionarios');
+    grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando funcionários...</p></div>';
+    try {
+      const response = await apiFetch(`${API_URL}/api/admin/funcionarios`);
+      const data = await response.json();
+      funcionarios = (data.funcionarios || []).filter(f => f.ativo);
+    } catch (err) {
+      console.error('Erro ao carregar funcionários:', err);
+      grid.innerHTML = '<p style="color:var(--danger);padding:20px;">Não foi possível carregar os funcionários. Verifique a conexão com o servidor.</p>';
+      return;
+    }
+    renderizarGridFuncionarios();
+  }
+
+  function renderizarGridFuncionarios() {
+    const grid = document.getElementById('gridFuncionarios');
+    if (funcionarios.length === 0) {
+      grid.innerHTML = '<p style="color:var(--text-secondary);padding:20px;">Nenhum funcionário ativo no momento.</p>';
+      return;
+    }
+    grid.innerHTML = funcionarios.map(f => {
+      const emoji = EMOJIS_FUNCIONARIO[f.id % EMOJIS_FUNCIONARIO.length];
+      return `
+        <div class="card-funcionario" data-id="${f.id}" data-nome="${escapeHtml(f.nome)}" data-emoji="${emoji}" onclick="selecionarFuncionarioPorCard(this)">
+          <div class="avatar" style="font-size: 32px;">${emoji}</div>
+          <div class="nome">${escapeHtml(f.nome)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function selecionarFuncionarioPorCard(el) {
+    selecionarFuncionario(parseInt(el.dataset.id, 10), el.dataset.nome, el.dataset.emoji);
+  }
+
+  function selecionarFuncionario(id, nome, emoji) {
+    funcionarioAtual = { id, nome, emoji };
+    localStorage.setItem('funcionarioAtual', JSON.stringify(funcionarioAtual));
+    
+    document.getElementById('modalSelecao').classList.remove('ativo');
+    document.getElementById('conteudoPrincipal').style.display = 'block';
+    document.getElementById('nomeHeader').textContent = nome;
+    document.getElementById('avatarHeader').textContent = emoji;
+    
+    carregarListas();
+  }
+
+  function trocarFuncionario() {
+    funcionarioAtual = null;
+    listaAtual = null;
+    cnpjsCarregados = [];
+    localStorage.removeItem('funcionarioAtual');
+    localStorage.removeItem('listaAtual');
+    
+    document.getElementById('modalSelecao').classList.add('ativo');
+    document.getElementById('conteudoPrincipal').style.display = 'none';
+    document.getElementById('selectLista').innerHTML = '<option value="">Carregando listas...</option>';
+    document.getElementById('listaCNPJs').innerHTML = '';
+    carregarFuncionariosDoBanco();
+  }
+
+  function carregarListasSeExistir() {
+    const func = localStorage.getItem('funcionarioAtual');
+    if (func) {
+      funcionarioAtual = JSON.parse(func);
+      document.getElementById('modalSelecao').classList.remove('ativo');
+      document.getElementById('conteudoPrincipal').style.display = 'block';
+      document.getElementById('nomeHeader').textContent = funcionarioAtual.nome;
+      document.getElementById('avatarHeader').textContent = funcionarioAtual.emoji;
+      carregarListas();
+    } else {
+      carregarFuncionariosDoBanco();
+    }
+  }
+
+  async function carregarListas() {
+    try {
+      const response = await apiFetch(`${API_URL}/api/funcionario/${funcionarioAtual.id}/listas`);
+      const data = await response.json();
+
+      if (!data.success) {
+        mostrarErro('Erro ao carregar listas');
+        return;
+      }
+
+      const select = document.getElementById('selectLista');
+      select.innerHTML = data.listas.length === 0 
+        ? '<option value="">Nenhuma lista disponível</option>'
+        : `<option value="">Selecione uma lista...</option>${data.listas.map(l => `
+            <option value="${l.id}" data-total="${l.total_cnpjs}">
+              ${l.nome_lista} (${l.total_cnpjs} CNPJs)
+            </option>
+          `).join('')}`;
+
+      const listaArmazenada = localStorage.getItem('listaAtual');
+      if (listaArmazenada) {
+        select.value = listaArmazenada;
+        carregarCNPJs();
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      mostrarErro('Erro ao conectar com servidor');
+    }
+  }
+
+  async function carregarCNPJs() {
+    var select = document.getElementById('selectLista');
+    var listaId = select.value;
+
+    if (!listaId) {
+      document.getElementById('listaCNPJs').innerHTML = 
+        '<div class="mensagem vazio"><span>Selecione uma lista para começar</span></div>';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    listaAtual = listaId;
+    localStorage.setItem('listaAtual', listaId);
+    paginaAtual = 1;
+
+    document.getElementById('listaCNPJs').innerHTML = 
+      '<div class="loading"><div class="spinner"></div><p>Carregando CNPJs...</p></div>';
+    document.getElementById('pagination').innerHTML = '';
+
+    try {
+      var response = await apiFetch(API_URL + '/api/funcionario/' + funcionarioAtual.id + '/lista/' + listaId);
+      var data = await response.json();
+
+      if (!data.success) {
+        mostrarErro('Erro ao carregar CNPJs');
+        return;
+      }
+
+      cnpjsCarregados = data.cnpjs || [];
+      filtrarStatus(statusFiltro);
+    } catch (err) {
+      console.error('Erro:', err);
+      mostrarErro('Erro ao conectar com servidor');
+    }
+  }
+
+  function filtrarStatus(status) {
+    statusFiltro = status;
+    paginaAtual = 1;
+
+    document.querySelectorAll('.aba').forEach(function(aba) { aba.classList.remove('ativo'); });
+    document.querySelector('[data-status="' + status + '"]').classList.add('ativo');
+
+    cnpjsFiltrados = cnpjsCarregados.filter(function(c) { return c.status === status; });
+    renderizarCNPJs();
+    atualizarBadges();
+  }
+
+  function renderizarCNPJs() {
+    var inicio = (paginaAtual - 1) * itensPorPagina;
+    var pagina = cnpjsFiltrados.slice(inicio, inicio + itensPorPagina);
+    var totalPaginas = Math.ceil(cnpjsFiltrados.length / itensPorPagina);
+
+    if (pagina.length === 0) {
+      document.getElementById('listaCNPJs').innerHTML = 
+        '<div class="mensagem vazio"><span>📭 Nenhum CNPJ ' + statusFiltro + '</span></div>';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('listaCNPJs').innerHTML = pagina.map(function(cnpj) {
+      var telefones = cnpj.telefones || 'N/A';
+      var telefonesDisplay = escapeHtml(telefones.length > 40 ? telefones.substring(0, 40) + '...' : telefones);
+
+      var botoesAcao = '';
+      if (cnpj.status === 'pendente') {
+        botoesAcao =
+          '<button class="btn btn-visualizado" onclick="marcarVisualizado(' + cnpj.id + ', this)">✅ Visualizado</button>' +
+          '<button class="btn btn-excluir" onclick="marcarExcluido(' + cnpj.id + ', this)">❌ Excluir</button>';
+      }
+      var botoes = '<div class="card-actions">' +
+        '<button class="btn btn-detalhes" onclick="abrirDetalhes(' + cnpj.id + ')">🔍 Detalhes</button>' +
+        botoesAcao +
+        '</div>';
+
+      return '<div class="card-cnpj ' + cnpj.status + '" data-id="' + cnpj.id + '">' +
+        '<div class="card-header">' +
+        '<div class="cnpj-info">' +
+        '<div class="cnpj-numero">' + escapeHtml(cnpj.cnpj) + '</div>' +
+        '<div class="razao-social">' + escapeHtml(cnpj.razao_social || 'N/A') + '</div>' +
+        '</div>' +
+        '<div class="status-badge ' + cnpj.status + '">' + escapeHtml(cnpj.status) + '</div>' +
+        '</div>' +
+        '<div class="card-dados">' +
+        '<div class="dado"><span class="dado-label">CPF</span><span class="dado-valor">' + escapeHtml(cnpj.cpf || 'N/A') + '</span></div>' +
+        '<div class="dado"><span class="dado-label">Idade</span><span class="dado-valor">' + (cnpj.idade ? escapeHtml(cnpj.idade) + ' anos' : 'N/A') + '</span></div>' +
+        '<div class="dado"><span class="dado-label">Renda</span><span class="dado-valor">' + escapeHtml(cnpj.renda || 'N/A') + '</span></div>' +
+        '<div class="dado"><span class="dado-label">Nascimento</span><span class="dado-valor">' + escapeHtml(cnpj.nascimento || 'N/A') + '</span></div>' +
+        '<div class="dado"><span class="dado-label">AG</span><span class="dado-valor">' + escapeHtml(cnpj.ag || 'N/A') + '</span></div>' +
+        '<div class="dado"><span class="dado-label">CC</span><span class="dado-valor">' + escapeHtml(cnpj.cc || 'N/A') + '</span></div>' +
+        '</div>' +
+        (cnpj.telefones ? '<div class="contato"><div class="contato-label">📞 Telefones</div><div class="contato-valor">' + telefonesDisplay + '</div></div>' : '') +
+        botoes +
+        '</div>';
+    }).join('');
+
+    renderizarPaginacao(totalPaginas);
+  }
+
+  function renderizarPaginacao(totalPaginas) {
+    if (totalPaginas <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+
+    var html = '<button class="page-btn" onclick="mudarPagina(' + (paginaAtual - 1) + ')" ' + (paginaAtual === 1 ? 'disabled' : '') + '>◀</button>';
+
+    var maxBotoes = 7;
+    var inicio = Math.max(1, paginaAtual - 3);
+    var fim = Math.min(totalPaginas, inicio + maxBotoes - 1);
+    if (fim - inicio < maxBotoes - 1) inicio = Math.max(1, fim - maxBotoes + 1);
+
+    if (inicio > 1) html += '<button class="page-btn" onclick="mudarPagina(1)">1</button><span style="color:var(--text-secondary);">...</span>';
+    for (var i = inicio; i <= fim; i++) {
+      html += '<button class="page-btn ' + (i === paginaAtual ? 'ativo' : '') + '" onclick="mudarPagina(' + i + ')">' + i + '</button>';
+    }
+    if (fim < totalPaginas) html += '<span style="color:var(--text-secondary);">...</span><button class="page-btn" onclick="mudarPagina(' + totalPaginas + ')">' + totalPaginas + '</button>';
+
+    html += '<button class="page-btn" onclick="mudarPagina(' + (paginaAtual + 1) + ')" ' + (paginaAtual === totalPaginas ? 'disabled' : '') + '>▶</button>';
+    html += '<span style="color:var(--text-secondary);font-size:13px;margin-left:10px;">Página ' + paginaAtual + ' de ' + totalPaginas + '</span>';
+
+    document.getElementById('pagination').innerHTML = html;
+  }
+
+  function mudarPagina(p) {
+    var totalPaginas = Math.ceil(cnpjsFiltrados.length / itensPorPagina);
+    if (p < 1 || p > totalPaginas) return;
+    paginaAtual = p;
+    renderizarCNPJs();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function atualizarBadges() {
+    var pendentes = cnpjsCarregados.filter(function(c) { return c.status === 'pendente'; }).length;
+    var visualizados = cnpjsCarregados.filter(function(c) { return c.status === 'visualizado'; }).length;
+    var excluidos = cnpjsCarregados.filter(function(c) { return c.status === 'excluido'; }).length;
+
+    document.getElementById('badge-pendente').textContent = pendentes;
+    document.getElementById('badge-visualizado').textContent = visualizados;
+    document.getElementById('badge-excluido').textContent = excluidos;
+  }
+
+  function abrirDetalhes(cnpjId) {
+    var cnpj = cnpjsCarregados.find(function(c) { return c.id === cnpjId; });
+    if (!cnpj) return;
+
+    document.getElementById('detalhesTitle').textContent = cnpj.cnpj;
+    document.getElementById('detalhesCNPJ').textContent = escapeHtml(cnpj.cnpj || 'N/A');
+    document.getElementById('detalhesRazao').textContent = escapeHtml(cnpj.razao_social || 'N/A');
+    document.getElementById('detalhesCPF').textContent = escapeHtml(cnpj.cpf || 'N/A');
+    document.getElementById('detalhesNome').textContent = escapeHtml(cnpj.nome_pessoa || 'N/A');
+    document.getElementById('detalhesRenda').textContent = escapeHtml(cnpj.renda || 'N/A');
+    document.getElementById('detalhesIdade').textContent = cnpj.idade ? cnpj.idade + ' anos' : 'N/A';
+    document.getElementById('detalhesNascimento').textContent = escapeHtml(cnpj.nascimento || 'N/A');
+    document.getElementById('detalhesAG').textContent = escapeHtml(cnpj.ag || 'N/A');
+    document.getElementById('detalhesCC').textContent = escapeHtml(cnpj.cc || 'N/A');
+    document.getElementById('detalhesEmail').textContent = escapeHtml(cnpj.email || 'N/A');
+    document.getElementById('detalhesEndereco').textContent = escapeHtml(cnpj.endereco || 'N/A');
+    document.getElementById('detalhesStatus').textContent = cnpj.status.charAt(0).toUpperCase() + cnpj.status.slice(1);
+
+    if (cnpj.telefones) {
+      var telefonesArray = cnpj.telefones.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+      document.getElementById('telefonesContainer').style.display = 'block';
+      document.getElementById('telefonesList').innerHTML = telefonesArray.map(function(tel) {
+        var telLimpo = tel.replace(/\D/g, '');
+        return '<div class="telefone-item">' +
+          '<div class="telefone-numero">' + escapeHtml(tel) + '</div>' +
+          '<div class="telefone-botoes">' +
+          '<a href="https://wa.me/55' + telLimpo + '" target="_blank" class="btn-whatsapp">💬 WhatsApp</a>' +
+          '<a href="tel:+55' + telLimpo + '" class="btn-ligar">☎️ Ligar</a>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+    } else {
+      document.getElementById('telefonesContainer').style.display = 'none';
+    }
+
+    var acoesHtml = '';
+    if (cnpj.status === 'pendente') {
+      acoesHtml = '<button class="btn btn-visualizado" onclick="marcarVisualizadoModal(' + cnpjId + ')">✅ Visualizado</button>' +
+        '<button class="btn btn-excluir" onclick="marcarExcluidoModal(' + cnpjId + ')">❌ Excluir</button>';
+    }
+    document.getElementById('acoesModal').innerHTML = acoesHtml;
+
+    document.getElementById('modalDetalhes').classList.add('ativo');
+  }
+
+  function fecharDetalhes() {
+    document.getElementById('modalDetalhes').classList.remove('ativo');
+  }
+
+  async function marcarVisualizadoModal(cnpjId) {
+    await marcarVisualizado(cnpjId);
+    fecharDetalhes();
+  }
+
+  async function marcarExcluidoModal(cnpjId) {
+    if (!confirm('Tem certeza que deseja excluir este CNPJ?')) return;
+    await marcarExcluido(cnpjId);
+    fecharDetalhes();
+  }
+
+  async function marcarVisualizado(cnpjId, btn) {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvando...';
+    }
+
+    try {
+      var response = await apiFetch(API_URL + '/api/funcionario/' + funcionarioAtual.id + '/marcar-visualizado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cnpj_id: cnpjId })
+      });
+      var data = await response.json();
+
+      if (data.success) {
+        var cnpj = cnpjsCarregados.find(function(c) { return c.id === cnpjId; });
+        if (cnpj) cnpj.status = 'visualizado';
+        filtrarStatus(statusFiltro);
+        mostrarSucesso('✅ Marcado como visualizado');
+      } else {
+        mostrarErro(data.message || 'Erro ao marcar');
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      mostrarErro('Erro ao conectar');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '✅ Visualizado';
+      }
+    }
+  }
+
+  async function marcarExcluido(cnpjId, btn) {
+    if (btn && !confirm('Tem certeza que deseja excluir este CNPJ?')) return;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Removendo...';
+    }
+
+    try {
+      var response = await apiFetch(API_URL + '/api/funcionario/' + funcionarioAtual.id + '/excluir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cnpj_id: cnpjId })
+      });
+      var data = await response.json();
+
+      if (data.success) {
+        var cnpj = cnpjsCarregados.find(function(c) { return c.id === cnpjId; });
+        if (cnpj) cnpj.status = 'excluido';
+        filtrarStatus(statusFiltro);
+        mostrarSucesso('❌ Marcado como excluído');
+      } else {
+        mostrarErro(data.message || 'Erro ao excluir');
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      mostrarErro('Erro ao conectar');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '❌ Excluir';
+      }
+    }
+  }
+
+  function mostrarSucesso(msg) {
+    var div = document.createElement('div');
+    div.className = 'mensagem sucesso';
+    div.textContent = msg;
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 3000);
+  }
+
+  function mostrarErro(msg) {
+    var div = document.createElement('div');
+    div.className = 'mensagem erro';
+    div.textContent = msg;
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 4000);
+  }
+
+  document.addEventListener('click', function(e) {
+    const modal = document.getElementById('modalDetalhes');
+    const content = document.querySelector('.modal-detalhes-content');
+    if (e.target === modal) {
+      fecharDetalhes();
+    }
+  });
+
+  init();
+</script>
+
+</body>
+</html>
