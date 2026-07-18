@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista BradescoPJ - Funcionário</title>
+  <title>CNPJ Manager - Funcionário</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -197,6 +197,21 @@
     @media (max-width: 768px) {
       .lista-cnpjs { grid-template-columns: 1fr; }
       .grid-funcionarios { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 15px; }
+      .header-content { flex-wrap: wrap; gap: 10px; }
+      .funcionario-nome span:first-child { display: none; }
+      .lista-selector { flex-direction: column; align-items: stretch; }
+      .lista-selector select { min-width: 0; width: 100%; }
+      .aba { padding: 12px 16px; font-size: 13px; }
+    }
+
+    @media (max-width: 420px) {
+      .logo { font-size: 18px; }
+      .modal-selecao { padding: 24px 18px; }
+      .grid-funcionarios { gap: 10px; }
+      .card-funcionario { padding: 14px 10px; }
+      .card-funcionario .avatar { width: 44px; height: 44px; font-size: 20px; }
+      .btn-sair { padding: 8px 12px; font-size: 12px; }
     }
 
     .card-cnpj {
@@ -588,7 +603,7 @@
 <!-- HEADER -->
 <header>
   <div class="header-content">
-    <div class="logo">📋 Lista BradescoPJ</div>
+    <div class="logo">📋 CNPJ Manager</div>
     <div class="funcionario-info">
       <div class="avatar" id="avatarHeader">👤</div>
       <div class="funcionario-nome">
@@ -729,8 +744,8 @@
   const EMOJIS_FUNCIONARIO = ['👨','👩','👨‍💼','👩‍💼','🧑','👱','🧔','👩‍🦰'];
 
   function escapeHtml(text) {
-    if (text === null || text === undefined || text === '') return '';
-    return String(text).replace(/[&<>"']/g, char => ({
+    if (!text) return '';
+    return text.replace(/[&<>"']/g, char => ({
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
@@ -797,6 +812,7 @@
     document.getElementById('avatarHeader').textContent = emoji;
     
     carregarListas();
+    iniciarPolling();
   }
 
   function trocarFuncionario() {
@@ -805,6 +821,7 @@
     cnpjsCarregados = [];
     localStorage.removeItem('funcionarioAtual');
     localStorage.removeItem('listaAtual');
+    pararPolling();
     
     document.getElementById('modalSelecao').classList.add('ativo');
     document.getElementById('conteudoPrincipal').style.display = 'none';
@@ -822,8 +839,111 @@
       document.getElementById('nomeHeader').textContent = funcionarioAtual.nome;
       document.getElementById('avatarHeader').textContent = funcionarioAtual.emoji;
       carregarListas();
+      iniciarPolling();
     } else {
       carregarFuncionariosDoBanco();
+    }
+  }
+
+  // ===== ATUALIZAÇÃO AUTOMÁTICA EM SEGUNDO PLANO =====
+  // Sem WebSocket: rechecar periodicamente nome/status do funcionário,
+  // listas disponíveis e os CNPJs da lista aberta — sem recarregar a página.
+  let pollingInterval = null;
+  const POLLING_MS = 15000;
+
+  function iniciarPolling() {
+    pararPolling();
+    pollingInterval = setInterval(atualizarEmSegundoPlano, POLLING_MS);
+  }
+
+  function pararPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  }
+
+  // Economiza requisições quando a aba está em segundo plano (ex: celular com a tela apagada)
+  document.addEventListener('visibilitychange', function() {
+    if (!funcionarioAtual) return;
+    if (document.hidden) {
+      pararPolling();
+    } else {
+      atualizarEmSegundoPlano();
+      iniciarPolling();
+    }
+  });
+
+  async function atualizarEmSegundoPlano() {
+    if (!funcionarioAtual) return;
+    await atualizarDadosFuncionario();
+    if (!funcionarioAtual) return; // pode ter sido desativado dentro da função acima
+    await atualizarListasEmSegundoPlano();
+    if (listaAtual) await atualizarCNPJsEmSegundoPlano();
+  }
+
+  async function atualizarDadosFuncionario() {
+    try {
+      const response = await apiFetch(`${API_URL}/api/admin/funcionarios`);
+      const data = await response.json();
+      const atual = (data.funcionarios || []).find(f => f.id === funcionarioAtual.id);
+
+      if (!atual || !atual.ativo) {
+        mostrarErro('Seu acesso foi desativado.');
+        trocarFuncionario();
+        return;
+      }
+
+      if (atual.nome !== funcionarioAtual.nome) {
+        funcionarioAtual.nome = atual.nome;
+        localStorage.setItem('funcionarioAtual', JSON.stringify(funcionarioAtual));
+        document.getElementById('nomeHeader').textContent = atual.nome;
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar dados do funcionário:', err);
+    }
+  }
+
+  async function atualizarListasEmSegundoPlano() {
+    try {
+      const response = await apiFetch(`${API_URL}/api/funcionario/${funcionarioAtual.id}/listas`);
+      const data = await response.json();
+      if (!data.success) return;
+
+      const select = document.getElementById('selectLista');
+      const valorAtual = select.value;
+
+      select.innerHTML = data.listas.length === 0
+        ? '<option value="">Nenhuma lista disponível</option>'
+        : `<option value="">Selecione uma lista...</option>${data.listas.map(l => `
+            <option value="${l.id}" data-total="${l.total_cnpjs}">
+              ${escapeHtml(l.nome_lista)} (${l.total_cnpjs} CNPJs)
+            </option>
+          `).join('')}`;
+
+      select.value = valorAtual;
+    } catch (err) {
+      console.error('Erro ao atualizar listas:', err);
+    }
+  }
+
+  async function atualizarCNPJsEmSegundoPlano() {
+    if (!listaAtual) return;
+    try {
+      const response = await apiFetch(`${API_URL}/api/funcionario/${funcionarioAtual.id}/lista/${listaAtual}`);
+      const data = await response.json();
+      if (!data.success) return;
+
+      cnpjsCarregados = data.cnpjs || [];
+      cnpjsFiltrados = cnpjsCarregados.filter(function(c) { return c.status === statusFiltro; });
+
+      const totalPaginas = Math.max(1, Math.ceil(cnpjsFiltrados.length / itensPorPagina));
+      if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+      renderizarCNPJs();
+      atualizarBadges();
+    } catch (err) {
+      console.error('Erro ao atualizar CNPJs:', err);
     }
   }
 
@@ -842,7 +962,7 @@
         ? '<option value="">Nenhuma lista disponível</option>'
         : `<option value="">Selecione uma lista...</option>${data.listas.map(l => `
             <option value="${l.id}" data-total="${l.total_cnpjs}">
-              ${l.nome_lista} (${l.total_cnpjs} CNPJs)
+              ${escapeHtml(l.nome_lista)} (${l.total_cnpjs} CNPJs)
             </option>
           `).join('')}`;
 
@@ -925,6 +1045,9 @@
       if (cnpj.status === 'pendente') {
         botoesAcao =
           '<button class="btn btn-visualizado" onclick="marcarVisualizado(' + cnpj.id + ', this)">✅ Visualizado</button>' +
+          '<button class="btn btn-excluir" onclick="marcarExcluido(' + cnpj.id + ', this)">❌ Excluir</button>';
+      } else if (cnpj.status === 'visualizado') {
+        botoesAcao =
           '<button class="btn btn-excluir" onclick="marcarExcluido(' + cnpj.id + ', this)">❌ Excluir</button>';
       }
       var botoes = '<div class="card-actions">' +
@@ -1035,6 +1158,8 @@
     if (cnpj.status === 'pendente') {
       acoesHtml = '<button class="btn btn-visualizado" onclick="marcarVisualizadoModal(' + cnpjId + ')">✅ Visualizado</button>' +
         '<button class="btn btn-excluir" onclick="marcarExcluidoModal(' + cnpjId + ')">❌ Excluir</button>';
+    } else if (cnpj.status === 'visualizado') {
+      acoesHtml = '<button class="btn btn-excluir" onclick="marcarExcluidoModal(' + cnpjId + ')">❌ Excluir</button>';
     }
     document.getElementById('acoesModal').innerHTML = acoesHtml;
 
